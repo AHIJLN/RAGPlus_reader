@@ -379,8 +379,6 @@ A: 可以减小 `CHUNK_SIZE` 或使用基础模式。
 
 本项目遵循 MIT 协议，欢迎贡献代码、报告问题或提出建议。
 
-GitHub: [https://github.com/AHIJLN/RAGPlus_reader](https://github.com/AHIJLN/RAGPlus_reader)
-
 ---
 
 *Happy Reading with RAGPlus! 🚀*
