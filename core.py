@@ -77,7 +77,7 @@ class DocumentLLM:
         初始化DocumentLLM。
         
         Args:
-            model: 要使用的LLM模型名称 (例如 'openai/gpt-4o-mini')。
+            model: 要使用的LLM模型名称 (例如 'openai/gpt-4o-mini' 或 'deepseek-chat')。
             api_key: API密钥。
         """
         self.model = model
@@ -87,10 +87,10 @@ class DocumentLLM:
         self._init_client()
 
     def _init_client(self):
-        """初始化OpenAI客户端，支持OpenRouter。"""
+        """初始化OpenAI客户端，支持OpenRouter、Deepseek等兼容API。"""
         try:
             from openai import OpenAI
-            api_base = os.environ.get("OPENAI_API_BASE", "https://openrouter.ai/api/v1")
+            api_base = os.environ.get("OPENAI_API_BASE", "https://api.openai.com/v1")
             self.client = OpenAI(api_key=self.api_key, base_url=api_base)
             logger.info(f"DocumentLLM client initialized for model '{self.model}' using base URL '{api_base}'.")
         except ImportError:
@@ -116,8 +116,27 @@ class DocumentLLM:
         prompt = self._build_extraction_prompt(document, concept)
         
         try:
-            # 移除模型名称中的 'openai/' 前缀，以适配OpenRouter的API要求
-            model_name_for_api = self.model.replace("openai/", "")
+            # 智能处理模型名称
+            model_name_for_api = self.model
+            api_base_url = str(self.client.base_url)
+            
+            # 处理 OpenRouter
+            if "openrouter.ai" in api_base_url and model_name_for_api.startswith("openai/"):
+                model_name_for_api = model_name_for_api.replace("openai/", "")
+                logger.debug(f"OpenRouter detected. Adapting model name to '{model_name_for_api}'.")
+            
+            # 处理 Deepseek API
+            elif "deepseek.com" in api_base_url:
+                # Deepseek 支持的模型：deepseek-chat, deepseek-coder
+                if model_name_for_api.startswith("openai/") or "/" in model_name_for_api:
+                    # 如果是 OpenAI 格式的模型名，转换为 deepseek-chat
+                    model_name_for_api = "deepseek-chat"
+                    logger.debug(f"Deepseek API detected. Using model '{model_name_for_api}'.")
+                # 如果已经是 deepseek-chat 或 deepseek-coder，保持不变
+                elif model_name_for_api not in ["deepseek-chat", "deepseek-coder"]:
+                    # 如果是其他不支持的模型名，默认使用 deepseek-chat
+                    logger.warning(f"Model '{model_name_for_api}' may not be supported by Deepseek. Using 'deepseek-chat'.")
+                    model_name_for_api = "deepseek-chat"
             
             response = self.client.chat.completions.create(
                 model=model_name_for_api,
@@ -163,7 +182,7 @@ class DocumentLLM:
         structure_json = "{\n" + ",\n".join(structure_parts) + "\n}"
 
         prompt = f"""
-从以下提供的文档内容中，提取关于“{concept.name}”的信息。
+从以下提供的文档内容中，提取关于"{concept.name}"的信息。
 
 概念描述: {concept.description}
 
