@@ -41,6 +41,16 @@ RAG（Retrieval-Augmented Generation）是一种结合了信息检索和文本�
 git clone https://github.com/AHIJLN/RAGPlus_reader.git
 cd RAGPlus_reader
 
+# 创建虚拟环境
+python -m venv venv
+
+# 激活虚拟环境
+## Windows:
+venv\Scripts\activate
+
+## macOS/Linux:
+source venv/bin/activate
+
 # 运行智能安装脚本（推荐）
 python install_requirements.py
 ```
