@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """智能安装脚本 - 自动解决所有兼容性问题并配置项目"""
 
@@ -27,7 +28,7 @@ class SmartInstaller:
         
         print("\n✅ 安装与配置完成！")
         print("\n下一步：")
-        print("1. 编辑 .env 文件，填入您的OpenRouter API密钥。")
+        print("1. 编辑 .env 文件，确认您的API配置并填入密钥。")
         print("2. 将您的文档放入 'data/documents' 目录。")
         print("3. 运行增强模式: python main_enhanced.py data/documents/your_file.pdf")
         print("4. 或运行基础模式: python main.py data/documents/your_file.pdf")
@@ -130,20 +131,29 @@ __all__ = [
         env_file = self.project_root / '.env'
         if not env_file.exists():
             print("\n📝 正在创建.env文件模板...")
-            env_content = """# OpenRouter API配置 (必须)
+            env_content = """# --- API Provider Configuration ---
+# 请选择并取消注释您要使用的API提供商配置。
+
+# === Option 1: Deepseek API (推荐) ===
+# 前往 https://platform.deepseek.com/api_keys 获取您的API密钥
+OPENAI_API_KEY="your-deepseek-api-key-here"
+OPENAI_API_BASE="https://api.deepseek.com/v1"
+# 可选模型: deepseek-chat, deepseek-coder
+CHAT_MODEL="deepseek-chat"
+
+# === Option 2: OpenRouter API ===
 # 前往 https://openrouter.ai 获取你的API密钥
-OPENAI_API_KEY="your-openrouter-api-key-here"
-OPENAI_API_BASE="https://openrouter.ai/api/v1"
+# OPENAI_API_KEY="your-openrouter-api-key-here"
+# OPENAI_API_BASE="https://openrouter.ai/api/v1"
+# 可选模型: openai/gpt-4o-mini, google/gemini-flash-1.5, etc.
+# CHAT_MODEL="openai/gpt-4o-mini"
 
-# 模型配置 (可选)
-# 你可以在OpenRouter上选择任何你喜欢的模型
-CHAT_MODEL="openai/gpt-4o-mini"
 
-# RAG配置 (可选)
+# --- RAG Configuration (Optional) ---
 CHUNK_SIZE=1000
 """
             env_file.write_text(env_content, encoding='utf-8')
-            print("✓ .env文件已创建。请务必填入您的API密钥。")
+            print("✓ .env文件已创建。请选择一个API提供商，并填入您的API密钥。")
 
     def verify_installation(self):
         """验证安装是否成功"""
