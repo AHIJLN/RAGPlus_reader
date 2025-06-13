@@ -37,13 +37,18 @@ class EnhancedDocumentReader:
         logger.info("初始化文档阅读系统...")
         self._validate_config()
         
+        # 从环境变量获取模型名称，并提供一个合理的默认值
+        self.chat_model_name = os.getenv("CHAT_MODEL", "deepseek-chat")
+        logger.info(f"使用聊天模型: {self.chat_model_name}")
+
         self.loader = UniversalDocumentLoader()
         self.splitter = SATTextSplitter(target_chunk_size=int(os.getenv("CHUNK_SIZE", 1000)))
         self.vector_manager = LocalVectorStore(embedding_model="all-MiniLM-L6-v2")
         
-        # EnhancedRAGChain内部会自己决定是否启用增强功能
+        # 将获取到的模型名称传递给 EnhancedRAGChain
         self.rag_chain = EnhancedRAGChain(
             vectorstore=None, # 初始为空，加载文档后创建
+            model_name=self.chat_model_name, # <-- **关键修改**
             auto_extract_concepts=use_enhancements
         )
         self.use_enhancements = self.rag_chain.enable_contextgem
